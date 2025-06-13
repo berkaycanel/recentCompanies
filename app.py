@@ -5,7 +5,7 @@ from datetime import datetime, timedelta
 
 token = st.secrets["token_key"]
 
-def get_recent_companies(days_back: int = 30, limit: int = 30, country: str = "DE") -> list:
+def get_recent_companies(days_back: int = 30, total_limit: int = 200, country: str = "DE") -> list:
     url = "https://connect.palturai.com/companies"
     headers = {
         "accept": "application/json",
@@ -14,51 +14,57 @@ def get_recent_companies(days_back: int = 30, limit: int = 30, country: str = "D
     }
 
     founding_from = (datetime.utcnow() - timedelta(days=days_back)).strftime("%Y-%m-%d")
+    all_companies = []
+    page = 0
+    page_size = 100 
 
-    params = {
-        "countryCode": country.upper(),
-        "page": 0,
-        "size": limit,
-        "foundingDateFrom": founding_from
-    }
+    while len(all_companies) < total_limit:
+        params = {
+            "countryCode": country.upper(),
+            "page": page,
+            "size": min(page_size, total_limit - len(all_companies)),
+            "foundingDateFrom": founding_from
+        }
 
-    response = requests.get(url, headers=headers, params=params)
+        response = requests.get(url, headers=headers, params=params)
 
-    if response.status_code != 200:
-        raise Exception(f"Failed to fetch data: {response.status_code} - {response.text}")
+        if response.status_code != 200:
+            raise Exception(f"API error on page {page}: {response.status_code} - {response.text}")
 
-    data = response.json()
+        content = response.json().get("content", [])
+        if not content:
+            break
 
-    companies = []
-    for company in data.get("content", []):
-        companies.append({
-            "Name": company.get("name"),
-            "City": company.get("city"),
-            "Founding Date": company.get("foundingDate"),
-            "Status": company.get("status"),
-            "Registration Number": company.get("officialRegistrationNumber"),
-            "UUID": company.get("id"),
-        })
+        for company in content:
+            all_companies.append({
+                "Name": company.get("name"),
+                "City": company.get("city"),
+                "Founding Date": company.get("foundingDate"),
+                "Status": company.get("status"),
+                "Registration Number": company.get("officialRegistrationNumber"),
+                "UUID": company.get("id"),
+            })
 
-    return companies
+        page += 1
 
-st.set_page_config(page_title="Recent Companies from Palturai", layout="wide")
+    return all_companies[:total_limit]
 
-st.title("🔍 Recent Companies from Palturai")
+st.set_page_config(page_title="Recent Companies – Palturai", layout="wide")
+st.title("📊 Recent Companies from Palturai")
 
 days_back = st.number_input("Days back", min_value=1, max_value=90, value=30)
-limit = st.number_input("Number of results", min_value=1, max_value=100, value=30)
+total_limit = st.number_input("Number of companies", min_value=1, max_value=1000, value=100)
 country = st.text_input("Country code (e.g. DE, AT, CH)", value="DE")
 
 if st.button("Fetch Companies"):
     try:
         with st.spinner("Fetching data from Palturai..."):
-            companies = get_recent_companies(days_back=days_back, limit=limit, country=country)
+            companies = get_recent_companies(days_back=days_back, total_limit=total_limit, country=country)
             df = pd.DataFrame(companies)
 
             if not df.empty:
                 df["Founding Date"] = pd.to_datetime(df["Founding Date"], errors="coerce")
-                df = df.sort_values("Founding Date", ascending=False)
+                df = df.sort_values(by="Founding Date", ascending=False)
 
                 st.success(f"Found {len(df)} companies")
                 st.dataframe(df)
