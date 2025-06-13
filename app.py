@@ -66,6 +66,10 @@ if st.button("Fetch Companies"):
                 df["Founding Date"] = pd.to_datetime(df["Founding Date"], errors="coerce")
                 df = df.sort_values(by="Founding Date", ascending=False)
 
+                df = df.reset_index(drop=True)
+                df.index += 1
+                #df.index.name = "No."
+
                 st.success(f"Found {len(df)} companies")
                 st.dataframe(df)
 
