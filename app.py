@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import pandas as pd
 from datetime import datetime, date, timedelta
+from requests.auth import HTTPBasicAuth
 
 def authenticate():
     username = st.secrets["username"]
