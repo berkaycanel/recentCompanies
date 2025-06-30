@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 from datetime import datetime, date, timedelta
 
-def auth():
+def authenticate():
     username = st.secrets["username"]
     st.write(username)
     password = st.secrets["password"]
@@ -78,7 +78,7 @@ def get_recent_companies(
 
     return all_companies[:total_limit]
 
-token = auth()
+token = authenticate()
 st.write(token)
 
 st.set_page_config(page_title="Recent Companies – Palturai", layout="wide")
