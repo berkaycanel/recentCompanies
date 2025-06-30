@@ -42,14 +42,15 @@ def get_recent_companies(
     founding_to = end_date.strftime("%Y-%m-%d")
 
     all_companies = []
+    seen_ids = set()
     page = 0
     page_size = 100
 
-    while len(all_companies) < total_limit:
+    while len(seen_ids) < total_limit:
         params = {
             "countryCode": country.upper(),
             "page": page,
-            "size": min(page_size, total_limit - len(all_companies)),
+            "size": min(page_size, total_limit - len(seen_ids)),
             "foundingDateFrom": founding_from,
             "foundingDateTo": founding_to
         }
@@ -64,14 +65,20 @@ def get_recent_companies(
             break
 
         for company in content:
+            cid = company.get("id")
+            if cid in seen_ids:
+                continue  # zaten eklediysek atla
+            seen_ids.add(cid)
             all_companies.append({
                 "Name": company.get("name"),
                 "City": company.get("city"),
                 "Founding Date": company.get("foundingDate"),
                 "Status": company.get("status"),
                 "Registration Number": company.get("officialRegistrationNumber"),
-                "UUID": company.get("id"),
+                "UUID": cid,
             })
+            if len(seen_ids) >= total_limit:
+                break
 
         page += 1
 
@@ -83,7 +90,7 @@ st.set_page_config(page_title="Recent Companies – Palturai", layout="wide")
 st.title("📊 Recent Companies from Palturai")
 
 today = date.today()
-default_start = today - timedelta(days=30)
+default_start = today - timedelta(days=2)
 start_date = st.date_input("Start date", value=default_start)
 end_date = st.date_input("End date", value=today)
 
