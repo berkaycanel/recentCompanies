@@ -6,9 +6,7 @@ from requests.auth import HTTPBasicAuth
 
 def authenticate():
     username = st.secrets["username"]
-    st.write(username)
     password = st.secrets["password"]
-    st.write(token)
     params = {"systemName": "PHOENIX"}
 
     try:
