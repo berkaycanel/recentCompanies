@@ -3,7 +3,26 @@ import requests
 import pandas as pd
 from datetime import datetime, date, timedelta
 
-token = st.secrets["token_key"]
+def auth():
+    username = st.secrets["username"]
+    password = st.secrets["password"]
+    params = {"systemName": "PHOENIX"}
+
+    try:
+        response = requests.get(
+            "https://connect.palturai.com/authenticate",
+            auth=HTTPBasicAuth(username, password),
+            params=params
+        )
+        response.raise_for_status()
+
+        return response.headers.get("Authorization")
+
+    except Exception as e:
+        print(f"Auth error: {e}")
+        return None
+        
+token = auth()
 
 def get_recent_companies(
     start_date: date,
