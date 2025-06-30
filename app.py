@@ -5,7 +5,9 @@ from datetime import datetime, date, timedelta
 
 def auth():
     username = st.secrets["username"]
+    st.write(username)
     password = st.secrets["password"]
+    st.write(token)
     params = {"systemName": "PHOENIX"}
 
     try:
@@ -22,7 +24,7 @@ def auth():
         print(f"Auth error: {e}")
         return None
         
-token = auth()
+
 
 def get_recent_companies(
     start_date: date,
@@ -75,6 +77,9 @@ def get_recent_companies(
         page += 1
 
     return all_companies[:total_limit]
+
+token = auth()
+st.write(token)
 
 st.set_page_config(page_title="Recent Companies – Palturai", layout="wide")
 st.title("📊 Recent Companies from Palturai")
