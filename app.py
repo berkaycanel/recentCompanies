@@ -78,7 +78,6 @@ def get_recent_companies(
     return all_companies[:total_limit]
 
 token = authenticate()
-st.write(token)
 
 st.set_page_config(page_title="Recent Companies – Palturai", layout="wide")
 st.title("📊 Recent Companies from Palturai")
